@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Radzen.Blazor
 {
@@ -41,7 +44,14 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The index of the selected item.</value>
         [Parameter]
-        public int SelectedIndex { get; set; } = 0;
+        public int SelectedIndex { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value changed.
+        /// </summary>
+        /// <value>The value changed.</value>
+        [Parameter]
+        public EventCallback<int> SelectedIndexChanged { get; set; }
 
         /// <summary>
         /// Gets or sets a callback raised when the item is expanded.
@@ -74,9 +84,9 @@ namespace Radzen.Blazor
         {
             if (items.IndexOf(item) == -1)
             {
-                if (item.Selected)
+                if (item.GetSelected())
                 {
-                    SelectedIndex = items.Count;
+                    SelectedIndexChanged.InvokeAsync(items.Count);
                 }
 
                 items.Add(item);
@@ -157,11 +167,22 @@ namespace Radzen.Blazor
 
             var itemIndex = items.IndexOf(item);
 
-            item.SetSelected(value ?? !item.GetSelected());
+            var selected = item.GetSelected();
+
+            if (selected)
+            {
+                await Collapse.InvokeAsync(itemIndex);
+            }
+            else
+            {
+                await Expand.InvokeAsync(itemIndex);
+            }
+
+            item.SetSelected(value ?? !selected);
 
             if (!Multiple)
             {
-                SelectedIndex = itemIndex;
+                await SelectedIndexChanged.InvokeAsync(itemIndex);
             }
 
             StateHasChanged();
@@ -173,10 +194,60 @@ namespace Radzen.Blazor
             {
                 foreach (var i in items.Where(i => i != item))
                 {
-                    i.SetSelected(false);
-                    await Collapse.InvokeAsync(items.IndexOf(i));
+                    if (i.GetSelected())
+                    {
+                        i.SetSelected(false);
+                        await Collapse.InvokeAsync(items.IndexOf(i));
+                    }
                 }
             }
+        }
+
+        internal int focusedIndex = -1;
+        bool preventKeyPress = true;
+        async Task OnKeyPress(KeyboardEventArgs args)
+        {
+            var key = args.Code != null ? args.Code : args.Key;
+
+            if (key == "ArrowUp" || key == "ArrowDown")
+            {
+                preventKeyPress = true;
+
+                focusedIndex = Math.Clamp(focusedIndex + (key == "ArrowUp" ? -1 : 1), 0, items.Count - 1);
+            }
+            else if (key == "Space" || key == "Enter")
+            {
+                preventKeyPress = true;
+
+                if (focusedIndex >= 0 && focusedIndex < items.Count)
+                {
+                    await SelectItem(items.Where(i => i.Visible).ElementAt(focusedIndex));
+                }
+            }
+            else
+            {
+                preventKeyPress = false;
+            }
+        }
+
+        internal bool IsFocused(RadzenAccordionItem item)
+        {
+            return items.Where(i => i.Visible).ToList().IndexOf(item) == focusedIndex && focusedIndex != -1;
+        }
+
+        /// <inheritdoc />
+        public override async Task SetParametersAsync(ParameterView parameters)
+        {
+            if (parameters.DidParameterChange(nameof(SelectedIndex), SelectedIndex))
+            {
+                var item = items.Where(i => i.Visible).ElementAtOrDefault(parameters.GetValueOrDefault<int>(nameof(SelectedIndex)));
+                if (item != null && !item.GetSelected())
+                {
+                    await SelectItem(item);
+                }
+            }
+            
+            await base.SetParametersAsync(parameters);
         }
     }
 }

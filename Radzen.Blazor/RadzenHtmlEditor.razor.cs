@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Radzen.Blazor
@@ -142,6 +145,27 @@ namespace Radzen.Blazor
             await UpdateCommandState();
         }
 
+        private readonly IDictionary<string, Func<Task>> shortcuts = new Dictionary<string, Func<Task>>();
+
+        /// <summary>
+        /// Registers a shortcut for the specified action.
+        /// </summary>
+        /// <param name="key">The shortcut. Can be combination of keys such as <c>CTRL+B</c>.</param>
+        /// <param name="action">The action to execute.</param>
+        public void RegisterShortcut(string key, Func<Task> action)
+        {
+            shortcuts[key] = action;
+        }
+
+        /// <summary>
+        /// Unregisters the specified shortcut.
+        /// </summary>
+        /// <param name="key"></param>
+        public void UnregisterShortcut(string key)
+        {
+            shortcuts.Remove(key);
+        }
+
         /// <summary>
         /// Invoked by interop when the RadzenHtmlEditor selection changes.
         /// </summary>
@@ -168,14 +192,40 @@ namespace Radzen.Blazor
         public async Task ExecuteCommandAsync(string name, string value = null)
         {
             State = await JSRuntime.InvokeAsync<RadzenHtmlEditorCommandState>("Radzen.execCommand", ContentEditable, name, value);
+
             await OnExecuteAsync(name);
-            Html = State.Html;
-            await OnChange();
+
+            if (Html != State.Html)
+            {
+                Html = State.Html;
+
+                htmlChanged = true;
+
+                await OnChange();
+            }
+        }
+
+        /// <summary>
+        /// Executes the action associated with the specified shortcut. Used internally by RadzenHtmlEditor.
+        /// </summary>
+        /// <param name="shortcut"></param>
+        /// <returns></returns>
+        [JSInvokable("ExecuteShortcutAsync")]
+        public async Task ExecuteShortcutAsync(string shortcut)
+        {
+            if (shortcuts.TryGetValue(shortcut, out var action))
+            {
+                await action();
+            }
         }
 
         private async Task SourceChanged(string html)
         {
-            Html = html;
+            if (Html != html)
+            {
+                Html = html;
+                htmlChanged = true;
+            }
             await JSRuntime.InvokeVoidAsync("Radzen.innerHTML", ContentEditable, Html);
             await OnChange();
             StateHasChanged();
@@ -183,8 +233,19 @@ namespace Radzen.Blazor
 
         async Task OnChange()
         {
-            await ValueChanged.InvokeAsync(Html);
-            await Change.InvokeAsync(Html);
+            if (htmlChanged)
+            {
+                htmlChanged = false;
+
+                await ValueChanged.InvokeAsync(Html);
+
+                if (FieldIdentifier.FieldName != null)
+                {
+                    EditContext?.NotifyFieldChanged(FieldIdentifier);
+                }
+
+                await Change.InvokeAsync(Html);
+            }
         }
 
         internal async Task OnExecuteAsync(string name)
@@ -222,6 +283,8 @@ namespace Radzen.Blazor
             await OnChange();
         }
 
+        bool htmlChanged = false;
+
         bool visibleChanged = false;
         bool firstRender = true;
 
@@ -241,7 +304,7 @@ namespace Radzen.Blazor
             {
                 if (Visible)
                 {
-                    await JSRuntime.InvokeVoidAsync("Radzen.createEditor", ContentEditable, UploadUrl, Paste.HasDelegate, Reference);
+                    await JSRuntime.InvokeVoidAsync("Radzen.createEditor", ContentEditable, UploadUrl, Paste.HasDelegate, Reference, shortcuts.Keys);
                 }
             }
 
@@ -292,7 +355,11 @@ namespace Radzen.Blazor
         [JSInvokable]
         public void OnChange(string html)
         {
-            Html = html;
+            if (Html != html)
+            {
+                Html = html;
+                htmlChanged = true;
+            }
             Input.InvokeAsync(html);
         }
 

@@ -216,6 +216,29 @@ namespace Radzen
         /// <summary>
         /// Opens a dialog with the specified content.
         /// </summary>
+        /// <param name="titleContent">The content displayed in the title bar of the dialog.</param>
+        /// <param name="childContent">The content displayed in the dialog.</param>
+        /// <param name="options">The dialog options.</param>
+        /// <returns>The value passed as argument to <see cref="Close" />.</returns>
+        public virtual Task<dynamic> OpenAsync(RenderFragment<DialogService> titleContent, RenderFragment<DialogService> childContent, DialogOptions options = null)
+        {
+            var task = new TaskCompletionSource<dynamic>();
+            tasks.Add(task);
+
+            options = options ?? new DialogOptions();
+
+            options.ChildContent = childContent;
+
+            options.TitleContent = titleContent;
+
+            OpenDialog<object>(null, null, options);
+
+            return task.Task;
+        }
+
+        /// <summary>
+        /// Opens a dialog with the specified content.
+        /// </summary>
         /// <param name="title">The text displayed in the title bar of the dialog.</param>
         /// <param name="childContent">The content displayed in the dialog.</param>
         /// <param name="options">The dialog options.</param>
@@ -248,6 +271,7 @@ namespace Radzen
                 Resizable = options != null ? options.Resizable : false,
                 Draggable = options != null ? options.Draggable : false,
                 ChildContent = options?.ChildContent,
+                TitleContent = options?.TitleContent,
                 Style = options != null ? options.Style : "",
                 AutoFocusFirstElement = options != null ? options.AutoFocusFirstElement : true,
                 CloseDialogOnOverlayClick = options != null ? options.CloseDialogOnOverlayClick : false,
@@ -255,6 +279,7 @@ namespace Radzen
                 CssClass = options != null ? options.CssClass : "",
                 WrapperCssClass = options != null ? options.WrapperCssClass : "",
                 CloseTabIndex = options != null ? options.CloseTabIndex : 0,
+                ContentCssClass = options != null ? options.ContentCssClass : ""
             });
         }
 
@@ -377,6 +402,7 @@ namespace Radzen
                 CloseDialogOnEsc = options != null ? options.CloseDialogOnEsc : true,
                 CssClass = options != null ? $"rz-dialog-alert {options.CssClass}" : "rz-dialog-alert",
                 WrapperCssClass = options != null ? $"rz-dialog-wrapper {options.WrapperCssClass}" : "rz-dialog-wrapper",
+                ContentCssClass = options != null ? $"rz-dialog-content {options.ContentCssClass}" : "rz-dialog-content",
                 CloseTabIndex = options != null ? options.CloseTabIndex : 0,
             };
 
@@ -452,7 +478,12 @@ namespace Radzen
         /// Gets or sets the CSS classes added to the dialog's wrapper element.
         /// </summary>
         public string WrapperCssClass { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the CSS classes added to the dialog's content element.
+        /// </summary>
+        public string ContentCssClass { get; set; }
+
         /// <summary>
         /// Gets or sets a value the dialog escape tabindex. Set to <c>0</c> by default.
         /// </summary>
@@ -538,6 +569,11 @@ namespace Radzen
         /// </summary>
         /// <value>The child content.</value>
         public RenderFragment<DialogService> ChildContent { get; set; }
+        /// <summary>
+        /// Gets or sets the title content.
+        /// </summary>
+        /// <value>The title content.</value>
+        public RenderFragment<DialogService> TitleContent { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether to focus the first focusable HTML element. Set to <c>true</c> by default.
         /// </summary>

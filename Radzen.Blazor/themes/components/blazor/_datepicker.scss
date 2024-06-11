@@ -1,7 +1,7 @@
 $datepicker-trigger-icon-width: var(--rz-icon-size) !default;
 $datepicker-trigger-icon-height: $datepicker-trigger-icon-width !default;
-$datepicker-trigger-icon-color: var(--rz-text-secondary-color) !default;
-$datepicker-trigger-icon-hover-color: var(--rz-secondary) !default;
+$datepicker-trigger-icon-color: var(--rz-input-value-color) !default;
+$datepicker-trigger-icon-hover-color: var(--rz-input-value-color) !default;
 $datepicker-line-height: 1.25rem !default;
 
 $datepicker-panel-border: var(--rz-border-normal) !default;
@@ -22,11 +22,11 @@ $datepicker-calendar-header-text-transform: uppercase !default;
 $datepicker-calendar-header-color: var(--rz-text-tertiary-color) !default;
 $datepicker-calendar-font-size: var(--rz-body-font-size) !default;
 $datepicker-calendar-color: var(--rz-text-color) !default;
-$datepicker-calendar-hover-color: var(--rz-text-contrast-color) !default;
+$datepicker-calendar-hover-color: var(--rz-on-secondary-light) !default;
 $datepicker-calendar-hover-background-color: var(--rz-secondary-light) !default;
-$datepicker-calendar-selected-color: var(--rz-text-contrast-color) !default;
+$datepicker-calendar-selected-color: var(--rz-on-secondary-dark) !default;
 $datepicker-calendar-selected-background-color: var(--rz-secondary-dark) !default;
-$datepicker-calendar-selected-hover-color: var(--rz-text-contrast-color) !default;
+$datepicker-calendar-selected-hover-color: var(--rz-on-secondary) !default;
 $datepicker-calendar-selected-hover-background-color: var(--rz-secondary) !default;
 $datepicker-calendar-border: var(--rz-border-base-100) !default;
 $datepicker-calendar-border-radius: 0 !default;
@@ -39,12 +39,15 @@ $datepicker-calendar-today-border-radius: var(--rz-datepicker-calendar-border-ra
 
 $datepicker-title-height: 47px !default;
 
+$datepicker-focus-outline: var(--rz-outline-focus) !default;
+$datepicker-focus-outline-offset: calc(-1 * var(--rz-outline-width)) !default;
+
 $timepicker-background-color: var(--rz-base-200)!default;
 $timepicker-color: var(--rz-text-color) !default;
 $timepicker-padding: 0.5rem !default;
 $timepicker-hour-padding: 0.5rem !default;
 $timepicker-button-background-color: var(--rz-secondary) !default;
-$timepicker-button-color: var(--rz-text-contrast-color) !default;
+$timepicker-button-color: var(--rz-on-secondary) !default;
 $timepicker-button-width: 0.875rem !default;
 $timepicker-button-height: $timepicker-button-width !default;
 $timepicker-button-border-radius: 2px !default;
@@ -98,6 +101,9 @@ $timepicker-border: none !default;
 
   --rz-datepicker-title-height: #{$datepicker-title-height};
 
+  --rz-datepicker-focus-outline: #{$datepicker-focus-outline};
+  --rz-datepicker-focus-outline-offset: #{$datepicker-focus-outline-offset};
+
   --rz-timepicker-background-color: #{$timepicker-background-color};
   --rz-timepicker-color: #{$timepicker-color};
   --rz-timepicker-separator-color: #{$timepicker-separator-color};
@@ -140,7 +146,15 @@ $timepicker-border: none !default;
 
   &.rz-state-disabled {
     .rz-inputtext {
-      @extend %input-disabled;
+      color: var(--rz-input-disabled-color);
+      box-shadow: var(--rz-input-disabled-shadow);
+      background-color: var(--rz-input-disabled-background-color);
+      border: var(--rz-input-disabled-border);
+      opacity: var(--rz-input-disabled-opacity);
+
+      &::placeholder {
+        color: var(--rz-input-disabled-placeholder-color);
+      }
     }
   }
 }
@@ -164,6 +178,8 @@ $timepicker-border: none !default;
     border: none;
     box-shadow: none;
     cursor: initial;
+    opacity: 1;
+    color: var(--rz-input-disabled-color);
   }
 
   color: var(--rz-datepicker-trigger-icon-color);
@@ -270,6 +286,17 @@ $timepicker-border: none !default;
   text-align: center;
 }
 
+.rz-datepicker-calendar-container {
+  &:focus {
+    outline: var(--rz-outline-normal);
+  }
+
+  &:focus-visible {
+    outline: var(--rz-datepicker-focus-outline);
+    outline-offset: var(--rz-datepicker-focus-outline-offset);
+  }
+}
+
 .rz-datepicker-calendar {
   table-layout: fixed;
   border-collapse: collapse;
@@ -303,6 +330,7 @@ $timepicker-border: none !default;
         border-radius: var(--rz-datepicker-calendar-today-border-radius);
       }
 
+      &.rz-state-focused,
       &:hover {
         text-decoration: none;
         color: var(--rz-datepicker-calendar-hover-color);
@@ -318,6 +346,7 @@ $timepicker-border: none !default;
       padding: var(--rz-datepicker-calendar-padding);
       box-shadow: none;
 
+      &.rz-state-focused,
       &:hover {
         color: var(--rz-datepicker-calendar-selected-hover-color);
         background-color: var(--rz-datepicker-calendar-selected-hover-background-color);
@@ -328,8 +357,12 @@ $timepicker-border: none !default;
   .rz-state-disabled {
     opacity: 0.5;
   }
-  
+
   .rz-datepicker-other-month {
+    opacity: 0.5;
+  }
+
+  .rz-datepicker-week-number {
     opacity: 0.5;
   }
 }

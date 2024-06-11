@@ -34,13 +34,6 @@ namespace Radzen.Blazor
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the index of the tab.
-        /// </summary>
-        /// <value>The index of the tab.</value>
-        [Parameter]
-        public int TabIndex { get; set; } = 0;
-
-        /// <summary>
         /// Gets or sets the placeholder.
         /// </summary>
         /// <value>The placeholder.</value>
@@ -252,7 +245,7 @@ namespace Radzen.Blazor
         public IFormFieldContext FormFieldContext { get; set; }
 
         /// <summary> Gets the current placeholder. Returns empty string if this component is inside a RadzenFormField.</summary>
-        protected string CurrentPlaceholder => FormFieldContext != null ? " " : Placeholder;
+        protected string CurrentPlaceholder => FormFieldContext?.AllowFloatingLabel == true ? " " : Placeholder;
 #if NET5_0_OR_GREATER
         /// <inheritdoc/>
         public virtual async ValueTask FocusAsync()

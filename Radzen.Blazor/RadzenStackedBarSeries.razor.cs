@@ -54,6 +54,20 @@ namespace Radzen.Blazor
         [Parameter]
         public LineType LineType { get; set; }
 
+        /// <summary>
+        /// Gets or sets the color range of the fill.
+        /// </summary>
+        /// <value>The color range of the fill.</value>
+        [Parameter]
+        public IList<SeriesColorRange> FillRange { get; set; }
+
+        /// <summary>
+        /// Gets or sets the color range of the stroke.
+        /// </summary>
+        /// <value>The color range of the stroke.</value>
+        [Parameter]
+        public IList<SeriesColorRange> StrokeRange { get; set; }
+
         /// <inheritdoc />
         public override string Color
         {
@@ -107,7 +121,7 @@ namespace Radzen.Blazor
 
             if (index >= 0)
             {
-                var color = PickColor(index, Fills, Fill);
+                var color = PickColor(index, Fills, Fill, FillRange, Value(item));
 
                 if (color != null)
                 {
@@ -170,7 +184,7 @@ namespace Radzen.Blazor
 
             var sum = Sum(barIndex, stackedBarSeries, category(item));
 
-            return Chart.CategoryScale.Scale(Math.Max(0, Math.Max(ticks.Start, sum)));
+            return Chart.CategoryScale.Scale(Math.Max(ticks.Start, sum));
         }
 
         int IChartBarSeries.Count
@@ -200,6 +214,18 @@ namespace Radzen.Blazor
             var category = ComposeCategory(Chart.ValueScale);
 
             return Items.Where(item => category(item) == value).Select(Value);
+        }
+
+        IEnumerable<object> IChartStackedBarSeries.ItemsForCategory(double value)
+        {
+            if (Items == null)
+            {
+                return Enumerable.Empty<object>();
+            }
+
+            var category = ComposeCategory(Chart.ValueScale);
+
+            return Items.Where(item => category(item) == value).Cast<object>();
         }
 
         /// <inheritdoc />

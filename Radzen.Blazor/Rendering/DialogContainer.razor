@@ -10,7 +10,16 @@
             {
                 <Draggable Drag="@OnDrag" DragStart="@OnDragStart">
                     <div class="rz-dialog-titlebar">
-                        <div class="rz-dialog-title" style="display: inline" id="rz-dialog-0-label">@((MarkupString)Dialog.Title)</div>
+                        <div class="rz-dialog-title" style="display: inline" id="rz-dialog-0-label">
+                            @if (Dialog.Options.TitleContent != null)
+                            {
+                                @Dialog.Options.TitleContent(Service)
+                            }
+                            else
+                            {
+                                @((MarkupString)Dialog.Title)
+                            }
+                        </div>
                         @if (Dialog.Options.ShowClose)
                         {
                             <a @onclick:preventDefault="true" @onclick=@Close role="button" class="rz-dialog-titlebar-icon rz-dialog-titlebar-close" tabindex=@Dialog.Options.CloseTabIndex>
@@ -23,7 +32,16 @@
             else
             {
                 <div class="rz-dialog-titlebar">
-                    <div class="rz-dialog-title" style="display: inline" id="rz-dialog-0-label">@((MarkupString)Dialog.Title)</div>
+                    <div class="rz-dialog-title" style="display: inline" id="rz-dialog-0-label">
+                        @if (Dialog.Options.TitleContent != null)
+                        {
+                            @Dialog.Options.TitleContent(Service)
+                        }
+                        else
+                        {
+                            @((MarkupString)Dialog.Title)
+                        }
+                    </div>
                     @if (Dialog.Options.ShowClose)
                     {
                         <a @onclick:preventDefault="true" @onclick=@Close role="button" class="rz-dialog-titlebar-icon rz-dialog-titlebar-close" tabindex=@Dialog.Options.CloseTabIndex>
@@ -33,7 +51,7 @@
                 </div>
             }
         }
-        <div class="rz-dialog-content">
+        <div class="@ContentCssClass">
             @if (Dialog.Options.ChildContent != null)
             {
                 @Dialog.Options.ChildContent(Service)
@@ -53,7 +71,7 @@
         }
         else
         {
-            <div class="rz-dialog-mask"></div>
+            <div class="rz-dialog-mask" style="pointer-events: none;"></div>
         }
     }
 
@@ -154,6 +172,15 @@
         {
             var baseCss = "rz-dialog-wrapper";
             return string.IsNullOrWhiteSpace(Dialog.Options.WrapperCssClass) ? baseCss : $"{baseCss} {Dialog.Options.WrapperCssClass}";
+        }
+    }
+
+    string ContentCssClass
+    {
+        get
+        {
+            var baseCss = "rz-dialog-content";
+            return string.IsNullOrEmpty(Dialog.Options.ContentCssClass) ? baseCss : $"{baseCss} {Dialog.Options.ContentCssClass}";
         }
     }
 

@@ -278,7 +278,7 @@ namespace Radzen
 
                         query.Add($"{Enum.GetName(typeof(StringFilterOperator), FilterOperator)}(@0)");
 
-                        _view = Query.Where(String.Join(".", query), ignoreCase ? searchText.ToLower() : searchText);
+                        _view = Query.Where(DynamicLinqCustomTypeProvider.ParsingConfig, string.Join(".", query), ignoreCase ? searchText.ToLower() : searchText);
                     }
                     else
                     {
@@ -405,6 +405,6 @@ namespace Radzen
         public IFormFieldContext FormFieldContext { get; set; }
 
         /// <summary> Gets the current placeholder. Returns empty string if this component is inside a RadzenFormField.</summary>
-        protected string CurrentPlaceholder => FormFieldContext != null ? " " : Placeholder;
+        protected string CurrentPlaceholder => FormFieldContext?.AllowFloatingLabel == true ? " " : Placeholder;
     }
 }

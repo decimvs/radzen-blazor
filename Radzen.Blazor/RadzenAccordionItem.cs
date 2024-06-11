@@ -70,7 +70,14 @@ namespace Radzen.Blazor
         /// <value>The child content.</value>
         [Parameter]
         public RenderFragment ChildContent { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the header content.
+        /// </summary>
+        /// <value>The header content.</value>
+        [Parameter]
+        public RenderFragment Template { get; set; }
+
         bool _visible = true;
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenAccordionItem"/> is visible.
@@ -162,7 +169,7 @@ namespace Radzen.Blazor
 
         internal string GetItemCssClass()
         {
-            return GetCssClass();
+            return $"{GetCssClass()} {(Accordion.IsFocused(this) ? "rz-state-focused" : "")}".Trim();
         }
 
         /// <inheritdoc />
